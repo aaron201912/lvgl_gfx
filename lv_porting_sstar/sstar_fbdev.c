@@ -17,6 +17,8 @@
 
 #include "sstar_fbdev.h"
 #include "tc_rotate.h"
+#include "sstar_memory.h"
+#include "verify_gfx.h"
 
 #define MAX_H ((unsigned int)1<<32-1)
 #define MAX_W ((unsigned int)1<<32-1)
@@ -63,7 +65,7 @@ void sstar_fbdev_flush(const lv_color_t *color_p)
         }
         else
         {
-            printf("finfo.line_length = %d \n",finfo.line_length);
+            LV_LOG_TRACE("finfo.line_length = %d \n",finfo.line_length);
             dstPa = sstar_fbdev_va2pa(framebuffer + vinfo.yres * finfo.line_length);
         }
         dstSurf.eColorFmt = E_MI_GFX_FMT_ARGB8888;

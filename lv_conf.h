@@ -694,7 +694,7 @@
 #endif
 
 /*SSTAR GFX ROTATE*/
-#define SSTAR_GFX_ROTATE 1
+#define SSTAR_GFX_ROTATE 0
 #if SSTAR_GFX_ROTATE 
 #define SSTAR_GFX_ROTATE_ANGLE 1 //0:0°  1:90°  2:180°  3:270°
 #endif 

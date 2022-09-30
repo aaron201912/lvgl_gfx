@@ -36,11 +36,19 @@ int _gfx_alloc_surface(MI_GFX_Surface_t *pSurf, char **data, char  *name)
     char surfName[128] = {0};
     snprintf(surfName, sizeof(surfName), "#%s", name);
 
+#ifdef CHIP_i2m
+    if(MI_SUCCESS != MI_SYS_MMA_Alloc(surfName,
+                                      pSurf->u32Height * pSurf->u32Stride, &pSurf->phyAddr)) {
+        printf("MI_SYS_MMA_Alloc fail\n");
+        return -1;
+    }
+#else
     if(MI_SUCCESS != MI_SYS_MMA_Alloc(0, surfName,
                                       pSurf->u32Height * pSurf->u32Stride, &pSurf->phyAddr)) {
         printf("MI_SYS_MMA_Alloc fail\n");
         return -1;
     }
+#endif
 
     if(MI_SUCCESS != MI_SYS_Mmap(pSurf->phyAddr,
                                  pSurf->u32Height * pSurf->u32Stride, (void **)data, FALSE)) {
@@ -54,7 +62,11 @@ int _gfx_alloc_surface(MI_GFX_Surface_t *pSurf, char **data, char  *name)
 void _gfx_free_surface(MI_GFX_Surface_t *pSurf, char *data)
 {
     MI_SYS_Munmap(data, pSurf->u32Height * pSurf->u32Stride);
+#ifdef CHIP_i2m
+    MI_SYS_MMA_Free(pSurf->phyAddr);
+#else
     MI_SYS_MMA_Free(0, pSurf->phyAddr);
+#endif
 }
 void _gfx_sink_surface(MI_GFX_Surface_t *pSurf,const char *data,const char  *name)
 {

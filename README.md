@@ -26,7 +26,29 @@
 ./demo c # widgets
 ```
 
+## 启动高精度时钟
+
+为了能够正常运行lvgl，需要开启高精度时钟，确认方法如下：
+
+```
+cat /proc/timer_list 
+...
+cpu: 0
+ clock 0:
+  ...
+  .resolution: 1 nsecs    // 为 1 nsecs时，则表示已开启了高精度时钟
+  ...
+```
+
+开启方法如下：
+
+```
+1. kernel的config需配置 CONFIG_HIGH_RES_TIMERS=y，然后重新编译并升级kernel；
+2. uboot的bootargs中需添加 highres=on （off表关闭）；
+```
+
 ## 旋转开启
+
 修改lv_conf.h下的SSTAR_GFX_ROTATE和SSTAR_GFX_ROTATE_ANGLE，可以开启或者关闭gfx硬件加速旋转以及设置旋转角度。（与lvgl原生旋转冲突，需关闭原生旋转配置！）
 注意：
 SSTAR_GFX_ROTATE开启为1时，fbdev.ini下的宽高与lvgl的disp_drv.hor_res和disp_drv.ver_res两个参数要对调设置。否则就不要对调设置。

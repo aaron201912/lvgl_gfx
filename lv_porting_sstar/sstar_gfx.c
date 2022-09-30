@@ -16,6 +16,7 @@
 
 #include "mi_gfx_datatype.h"
 #include "mi_gfx.h"
+#include "verify_gfx.h"
 
 #ifndef SSTAR_IMG_ARR_SIZE
 #define SSTAR_IMG_ARR_SIZE (16)
@@ -95,7 +96,11 @@ static void __sstar_bdma_fill(lv_color_t * dest_buf, const lv_area_t * dest_area
     stRect.u16Y = dest_area->y1;
     stRect.u16Width = lv_area_get_width(dest_area);
     stRect.u16Height = lv_area_get_height(dest_area);
+#ifdef CHIP_i2m
+    MI_SYS_BufFillPa(&stBuf, color.full, &stRect);
+#else
     MI_SYS_BufFillPa(0, &stBuf, color.full, &stRect);
+#endif
 }
 
 static void __sstar_gfx_fill(lv_color_t * dest_buf, const lv_area_t * dest_area, lv_coord_t dest_stride,
@@ -116,8 +121,13 @@ static void __sstar_gfx_fill(lv_color_t * dest_buf, const lv_area_t * dest_area,
     __sstar_gfx_make_rect(dest_area->x1, dest_area->y1, lv_area_get_width(dest_area), lv_area_get_height(dest_area),
             &stDstRect);
 	sstar_flush_cache();
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(&stDst, &stDstRect, (MI_U32)color.full, &u16Fence);
+    MI_GFX_WaitAllDone(FALSE, u16Fence);
+#else
     MI_GFX_QuickFill(DEFAULT_GFX_DEV_ID,&stDst, &stDstRect, (MI_U32)color.full, &u16Fence);
     MI_GFX_WaitAllDone(DEFAULT_GFX_DEV_ID,FALSE, u16Fence);
+#endif
 }
 
 static void __sstar_gfx_blit(lv_color_t * dest_buf, const lv_area_t * dest_area, lv_coord_t dest_stride,
@@ -149,8 +159,13 @@ static void __sstar_gfx_blit(lv_color_t * dest_buf, const lv_area_t * dest_area,
     //__sstar_print_rect("Dst", &stDstRect);
     //__sstar_print_surface("Src", &stSrc);
     //__sstar_print_rect("Src", &stSrcRect);
+#ifdef CHIP_i2m
+    MI_GFX_BitBlit(&stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
+    MI_GFX_WaitAllDone(FALSE, u16Fence);
+#else
     MI_GFX_BitBlit(DEFAULT_GFX_DEV_ID,&stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
     MI_GFX_WaitAllDone(DEFAULT_GFX_DEV_ID,FALSE, u16Fence);
+#endif
 }
 
 void sstar_bdma_copy(lv_color_t *dst, lv_color_t *src, lv_area_t *area)
@@ -181,7 +196,11 @@ void sstar_bdma_copy(lv_color_t *dst, lv_color_t *src, lv_area_t *area)
     stSrcRect.u16Y      = stDstRect.u16Y      = area->y1;
     stSrcRect.u16Width  = stDstRect.u16Width  = lv_area_get_width(area);
     stSrcRect.u16Height = stDstRect.u16Height = lv_area_get_height(area);
+#ifdef CHIP_i2m
+    MI_SYS_BufBlitPa(&stDstBuf, &stDstRect, &stSrcBuf, &stSrcRect);
+#else
     MI_SYS_BufBlitPa(0,&stDstBuf, &stDstRect, &stSrcBuf, &stSrcRect);
+#endif
 }
 
 void sstar_gfx_copy(lv_color_t *dst, lv_color_t *src, lv_area_t *area)
@@ -207,7 +226,11 @@ void sstar_gfx_copy(lv_color_t *dst, lv_color_t *src, lv_area_t *area)
     __sstar_gfx_make_rect(area->x1, area->y1, lv_area_get_width(area), lv_area_get_height(area), &stSrcRect);
     stOpt.eSrcDfbBldOp = E_MI_GFX_DFB_BLD_ONE;
     stOpt.eDstDfbBldOp = E_MI_GFX_DFB_BLD_ZERO;
+#ifdef CHIP_i2m
+    MI_GFX_BitBlit(&stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
+#else
     MI_GFX_BitBlit(DEFAULT_GFX_DEV_ID ,&stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
+#endif
 }
 
 void sstar_gfx_blend_cb(lv_draw_ctx_t * draw_ctx, const lv_draw_sw_blend_dsc_t * dsc)
@@ -269,7 +292,11 @@ void sstar_gfx_blend_cb(lv_draw_ctx_t * draw_ctx, const lv_draw_sw_blend_dsc_t *
 
 void sstar_gfx_wait()
 {
+#ifdef CHIP_i2m
+    MI_GFX_WaitAllDone(TRUE, 0);
+#else
     MI_GFX_WaitAllDone(DEFAULT_GFX_DEV_ID, TRUE, 0);
+#endif
 }
 
 lv_res_t sstar_gfx_draw_img_cb(struct _lv_draw_ctx_t * draw_ctx, const lv_draw_img_dsc_t * draw_dsc,
@@ -320,16 +347,27 @@ lv_res_t sstar_gfx_draw_img_cb(struct _lv_draw_ctx_t * draw_ctx, const lv_draw_i
 
 int sstar_gfx_init()
 {
-    if (MI_SUCCESS != MI_GFX_Open(DEFAULT_GFX_DEV_ID)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+#ifdef CHIP_i2m
+    if (MI_SUCCESS != MI_GFX_Open()) {
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         return -1;
     }
+#else
+    if (MI_SUCCESS != MI_GFX_Open(DEFAULT_GFX_DEV_ID)) {
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
+        return -1;
+    }
+#endif
     return 0;
 }
 
 void sstar_gfx_deinit()
 {
+#ifdef CHIP_i2m
+    MI_GFX_Close();
+#else
     MI_GFX_Close(DEFAULT_GFX_DEV_ID);
+#endif
 }
 
 

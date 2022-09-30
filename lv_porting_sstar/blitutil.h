@@ -30,6 +30,10 @@ typedef struct Surface
 }Surface;
 
 
+#ifndef MI_GFX_DEV
+typedef MI_S32 MI_GFX_DEV;
+#endif
+
 void SstarBlitCCW(MI_GFX_DEV GfxDevId, Surface * pSrcSurface, Surface *pDstSurface, RECT* pRect);
 void SstarBlitCW(MI_GFX_DEV GfxDevId, Surface * pSrcSurface, Surface *pDstSurface, RECT* pRect);
 void SstarBlitHVFlip(MI_GFX_DEV GfxDevId, Surface * pSrcSurface, Surface *pDstSurface, RECT* pRect);

@@ -3,7 +3,7 @@
 #
 #CC := gcc
 #CC := aarch64-linux-gnu-gcc
-CC := arm-linux-gnueabihf-sigmastar-9.1.0-gcc
+CC := arm-linux-gnueabihf-gcc
 LVGL_DIR ?= .
 LVGL_DIR_NAME ?= lvgl
 
@@ -14,9 +14,9 @@ LVGL_DIR_NAME ?= lvgl
 #           -Wtype-limits -Wsizeof-pointer-memaccess
 
 #-Wno-unused-value -Wno-unused-parameter 
-OPTIMIZATION ?= -O3 -mfpu=neon #-g -fno-omit-frame-pointer
+OPTIMIZATION ?= -O3 -mfpu=neon #-g -fno-omit-frame-pointer 
 
-ALKAID_PROJ := /home/peng.xiong/26xDisp_Stable/project
+ALKAID_PROJ := /users/sz.chen/workspace/SDK_Release/TAKOYAKI_DLS00V050/project
 
 include $(ALKAID_PROJ)/configs/current.configs
 
@@ -29,9 +29,17 @@ CFLAGS += -I$(LVGL_DIR)/squareline_proj
 
 CFLAGS += -I$(PROJ_ROOT)/release/include/
 
+CFLAGS += -DCHIP_$(CHIP)
+
+ifeq ($(CHIP),i2m)
+LDFLAGS += -L $(ALKAID_PROJ)/release/$(PRODUCT)/$(CHIP)/common/$(TOOLCHAIN)/$(TOOLCHAIN_VERSION)/mi_libs/dynamic
+LDFLAGS += -L $(ALKAID_PROJ)/release/$(PRODUCT)/$(CHIP)/common/$(TOOLCHAIN)/$(TOOLCHAIN_VERSION)/ex_libs/dynamic
+CFLAGS += -I./lv_porting_sstar/panel
+else
 LDFLAGS += -L $(ALKAID_PROJ)/release/chip/$(CHIP)/$(PRODUCT)/common/$(TOOLCHAIN)/$(TOOLCHAIN_VERSION)/mi_libs/dynamic
 LDFLAGS += -L $(ALKAID_PROJ)/release/chip/$(CHIP)/$(PRODUCT)/common/$(TOOLCHAIN)/$(TOOLCHAIN_VERSION)/ex_libs/dynamic
 LDFLAGS += -L $(ALKAID_PROJ)/release/chip/$(CHIP)/sigma_common_libs/$(TOOLCHAIN)/$(TOOLCHAIN_VERSION)/dynamic
+endif
 
 LDFLAGS += -lpthread
 LDFLAGS += -lcam_os_wrapper -lcam_fs_wrapper -lmi_sys -lmi_common -lmi_panel -lmi_disp -lmi_gfx -lm 

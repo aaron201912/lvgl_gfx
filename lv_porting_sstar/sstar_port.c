@@ -34,7 +34,7 @@ void sstar_draw_ctx_deinit_cb(struct _lv_disp_drv_t * disp_drv, lv_draw_ctx_t * 
 
 void sstar_flush_cb(struct _lv_disp_drv_t * disp_drv, const lv_area_t * area, lv_color_t * color_p)
 {
-    printf("%s-> Calling flush_cb on (%d;%d)(%d;%d) area with %p image pointer\033[0m\n",
+    LV_LOG_TRACE("%s-> Calling flush_cb on (%d;%d)(%d;%d) area with %p image pointer\033[0m\n",
             color_p == disp_drv->draw_buf->buf1 ? "\033[0;35m" : "\033[0;36m",
             area->x1, area->y1, area->x2, area->y2, (void *)color_p);
     //sstar_gfx_wait();
@@ -73,7 +73,7 @@ void sstar_flush_cb(struct _lv_disp_drv_t * disp_drv, const lv_area_t * area, lv
     } else {
         sstar_gfx_copy(disp_drv->draw_buf->buf1, color_p, &dirty_area);
     }
-    printf("%s-> Calling flush_cb on (%d;%d)(%d;%d) area with %p image pointer, %d\033[0m\n",
+    LV_LOG_TRACE("%s-> Calling flush_cb on (%d;%d)(%d;%d) area with %p image pointer, %d\033[0m\n",
             color_p == disp_drv->draw_buf->buf1 ? "\033[0;35m" : "\033[0;36m",
             dirty_area.x1, dirty_area.y1, dirty_area.x2, dirty_area.y2, (void *)color_p, disp_drv->draw_buf->flushing_last);
     sstar_gfx_wait();
@@ -112,8 +112,13 @@ static void lvgl_disp_drv_init()
     // Lvgl init display driver
     lv_disp_drv_init(&disp_drv);
     disp_drv.draw_buf = &disp_buf;
-    disp_drv.hor_res = 1280;//sstar_fbdev_get_xres();
-    disp_drv.ver_res = 720;//sstar_fbdev_get_yres();
+#if (SSTAR_GFX_ROTATE_ANGLE == 1) || (SSTAR_GFX_ROTATE_ANGLE == 3)
+    disp_drv.hor_res = sstar_fbdev_get_yres();
+    disp_drv.ver_res = sstar_fbdev_get_xres();
+#else
+    disp_drv.hor_res = sstar_fbdev_get_xres();
+    disp_drv.ver_res = sstar_fbdev_get_yres();
+#endif
     disp_drv.full_refresh = 1;
     //disp_drv.direct_mode = 1;
     printf("disp_drv.hor_res = %d\n", disp_drv.hor_res);
@@ -151,7 +156,7 @@ int sstar_lv_init(void)
     if (0 != sstar_fbdev_init()) {
         goto ERR_FBDEV_INIT;
     }
-    if (0 != sstar_disp_init(0, "mipi", 720, 1280)) {
+    if (0 != sstar_disp_init(0, "ttl", 1024, 600)) {
         goto ERR_DISP_INIT;
     }
     if (0 != sstar_gfx_init()) {
@@ -163,7 +168,7 @@ int sstar_lv_init(void)
     lvgl_disp_drv_init();
     return 0;
 ERR_GFX_INIT:
-    sstar_disp_deinit(0, "mipi");
+    sstar_disp_deinit(0, "ttl");
 ERR_DISP_INIT:
     sstar_fbdev_deinit();
 ERR_FBDEV_INIT:

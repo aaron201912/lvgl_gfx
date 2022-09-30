@@ -12,6 +12,10 @@
 
 #include "sstar_disp.h"
 
+#ifdef CHIP_i2m
+#include "SAT070CP50_TTL_1024x600.h"
+#endif
+
 #ifndef SSTAR_DISP_DEV
 #define SSTAR_DISP_DEV (0)
 #endif
@@ -36,6 +40,7 @@ int sstar_disp_init(unsigned int dev, const char *interface, unsigned int width,
     MI_DISP_PubAttr_t stPubAttr;
     MI_DISP_VideoLayerAttr_t stLayerAttr;
     MI_DISP_InputPortAttr_t stInputPortAttr;
+    MI_PANEL_LinkType_e eLinkType;
 
     memset(&stPubAttr, 0, sizeof(MI_DISP_PubAttr_t));
     stPubAttr.u32BgColor = YUYV_BLACK;
@@ -59,56 +64,81 @@ int sstar_disp_init(unsigned int dev, const char *interface, unsigned int width,
 
     if (0 == strcmp(interface, "ttl")) {
         stPubAttr.eIntfSync = E_MI_DISP_OUTPUT_USER;
+    #ifndef CHIP_i2m
         stPubAttr.eIntfType = E_MI_DISP_INTF_TTL;
+        eLinkType = E_MI_PNL_INTF_TTL;
+    #endif
     }
     else if(0 == strcmp(interface, "mipi"))
     {
         stPubAttr.eIntfSync = E_MI_DISP_OUTPUT_USER;
+    #ifndef CHIP_i2m
         stPubAttr.eIntfType = E_MI_DISP_INTF_MIPIDSI;
+        eLinkType = E_MI_PNL_INTF_MIPI_DSI;
+    #endif
     }
 
+#ifdef CHIP_i2m
+    stPubAttr.stSyncInfo.u16Vact = stPanelParam.u16Height;
+    stPubAttr.stSyncInfo.u16Vbb = stPanelParam.u16VSyncBackPorch;
+    stPubAttr.stSyncInfo.u16Vfb = stPanelParam.u16VTotal - (stPanelParam.u16VSyncWidth +
+                                                                  stPanelParam.u16Height + stPanelParam.u16VSyncBackPorch);
+    stPubAttr.stSyncInfo.u16Hact = stPanelParam.u16Width;
+    stPubAttr.stSyncInfo.u16Hbb = stPanelParam.u16HSyncBackPorch;
+    stPubAttr.stSyncInfo.u16Hfb = stPanelParam.u16HTotal - (stPanelParam.u16HSyncWidth +
+                                                                  stPanelParam.u16Width + stPanelParam.u16HSyncBackPorch);
+    stPubAttr.stSyncInfo.u16Bvact = 0;
+    stPubAttr.stSyncInfo.u16Bvbb = 0;
+    stPubAttr.stSyncInfo.u16Bvfb = 0;
+    stPubAttr.stSyncInfo.u16Hpw = stPanelParam.u16HSyncWidth;
+    stPubAttr.stSyncInfo.u16Vpw = stPanelParam.u16VSyncWidth;
+    stPubAttr.stSyncInfo.u32FrameRate = stPanelParam.u16DCLK * 1000000 / (stPanelParam.u16HTotal * stPanelParam.u16VTotal);
+    stPubAttr.eIntfSync = E_MI_DISP_OUTPUT_USER;
+    stPubAttr.eIntfType = E_MI_DISP_INTF_LCD;
+    eLinkType = stPanelParam.eLinkType;
+#endif
+
     if (MI_SUCCESS != MI_DISP_SetPubAttr(dev, &stPubAttr)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         goto DISP_ENABLE_ERR;
     }
     if (MI_SUCCESS != MI_DISP_Enable(dev)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         goto DISP_ENABLE_ERR;
     }
     if (MI_SUCCESS != MI_DISP_BindVideoLayer(0, dev)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         goto DISP_BIND_LAYER_ERR;
     }
     if (MI_SUCCESS != MI_DISP_SetVideoLayerAttr(0, &stLayerAttr)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         goto DISP_SET_LAYER_ATTR_ERR;
     }
     if (MI_SUCCESS != MI_DISP_EnableVideoLayer(0)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         goto DISP_ENABLE_LAYER_ERR;
     }
     if (MI_SUCCESS != MI_DISP_SetInputPortAttr(0, 0, &stInputPortAttr)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         goto DISP_SET_PORT_ERR;
     }
     if (MI_SUCCESS != MI_DISP_EnableInputPort(0, 0)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         goto DISP_ENABLE_PORT_ERR;
     }
 
-	if (0 == strcmp(interface, "ttl")) {
-        if (MI_SUCCESS != MI_PANEL_Init(E_MI_PNL_INTF_TTL)) {
-            printf("ERR %s -> [%d]", __FILE__, __LINE__);
-            goto PANEL_INIT_ERR;
-        }
+	if (MI_SUCCESS != MI_PANEL_Init(eLinkType)) {
+        printf("ERR %s -> [%d], eLinkType: %d, interface: %s\n", __FILE__, __LINE__, eLinkType, interface);
+        goto PANEL_INIT_ERR;
     }
-    else if(0 == strcmp(interface, "mipi"))
+
+#ifdef CHIP_i2m
+    MI_PANEL_SetPanelParam(&stPanelParam);
+    if(eLinkType == E_MI_PNL_LINK_MIPI_DSI)
     {
-        if (MI_SUCCESS != MI_PANEL_Init(E_MI_PNL_INTF_MIPI_DSI)) {
-            printf("ERR %s -> [%d]", __FILE__, __LINE__);
-            goto PANEL_INIT_ERR;
-        }
+        MI_PANEL_SetMipiDsiConfig(&stMipiDsiConfig);
     }
+#endif
 
     return 0;
 PANEL_INIT_ERR:

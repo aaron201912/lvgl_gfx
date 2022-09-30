@@ -314,9 +314,13 @@ void SstarBlitCW(MI_GFX_DEV GfxDevId, Surface *pSrcSurface, Surface *pDstSurface
         stOpt.eMirror = E_MI_GFX_MIRROR_NONE;
         stOpt.eRotate = E_MI_GFX_ROTATE_90;
         //start = clock();
-
+    #ifdef CHIP_i2m
+        MI_GFX_BitBlit(&stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
+        MI_GFX_WaitAllDone(FALSE, u16Fence);
+    #else
         MI_GFX_BitBlit(GfxDevId, &stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
         MI_GFX_WaitAllDone(GfxDevId, FALSE, u16Fence);
+    #endif
     }
 
     free(srcClip);
@@ -416,9 +420,13 @@ void SstarBlitCCW(MI_GFX_DEV GfxDevId, Surface *pSrcSurface, Surface *pDstSurfac
         stOpt.eMirror = E_MI_GFX_MIRROR_NONE;
         stOpt.eRotate = E_MI_GFX_ROTATE_270;
         //start = clock();
-
+    #ifdef CHIP_i2m
+        MI_GFX_BitBlit(&stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
+        MI_GFX_WaitAllDone(FALSE, u16Fence);
+    #else
         MI_GFX_BitBlit(GfxDevId, &stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
         MI_GFX_WaitAllDone(GfxDevId, FALSE, u16Fence);
+    #endif
     }
 
     free(srcClip);
@@ -491,8 +499,13 @@ void SstarBlitHVFlip(MI_GFX_DEV GfxDevId, Surface *pSrcSurface, Surface *pDstSur
     stOpt.eRotate = E_MI_GFX_ROTATE_180;
     //start = clock();
 
+#ifdef CHIP_i2m
+    MI_GFX_BitBlit(&stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
+    MI_GFX_WaitAllDone(FALSE, u16Fence);
+#else
     MI_GFX_BitBlit(GfxDevId, &stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
     MI_GFX_WaitAllDone(GfxDevId, FALSE, u16Fence);
+#endif
 }
 
 void SstarBlitNormal(MI_GFX_DEV GfxDevId, Surface *pSrcSurface, Surface *pDstSurface, RECT *pRect)
@@ -560,7 +573,12 @@ void SstarBlitNormal(MI_GFX_DEV GfxDevId, Surface *pSrcSurface, Surface *pDstSur
     stOpt.eMirror = E_MI_GFX_MIRROR_NONE;
     stOpt.eRotate = E_MI_GFX_ROTATE_0;
     //start = clock();
-
+    
+#ifdef CHIP_i2m
+    MI_GFX_BitBlit(&stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
+    MI_GFX_WaitAllDone(FALSE, u16Fence);
+#else
     MI_GFX_BitBlit(GfxDevId, &stSrc, &stSrcRect, &stDst, &stDstRect, &stOpt, &u16Fence);
     MI_GFX_WaitAllDone(GfxDevId, FALSE, u16Fence);
+#endif
 }

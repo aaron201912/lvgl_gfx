@@ -1,4 +1,5 @@
 #include <time.h>
+#include "lv_log.h"
 
 #define likely(x) __builtin_expect(!!(x), 1)
 #define unlikely(x) __builtin_expect(!!(x), 0)
@@ -22,7 +23,7 @@ double posix_dur;
         count--;                                                                                           \
         if (unlikely(count == 0))                                                                          \
         {                                                                                                  \
-            printf("CPU time used (%s->%d): %.2f ms\n", __FUNCTION__,__LINE__, dur);                       \
+            LV_LOG_TRACE("CPU time used (%s->%d): %.2f ms\n", __FUNCTION__,__LINE__, dur);                       \
             count = cnt;                                                                                   \
             dur = 0.0;                                                                                     \
         }                                                                                                  \
@@ -38,3 +39,7 @@ typedef struct
     MI_GFX_Surface_t dstSurf;
     MI_GFX_Rect_t dstRect;
 } MI_GFX_DemoParam_t;
+
+#ifndef MI_GFX_DEV
+typedef MI_S32 MI_GFX_DEV;
+#endif

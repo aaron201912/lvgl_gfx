@@ -67,7 +67,11 @@ int  __create_src_surface_ARGB(MI_GFX_DEV GfxDevId, MI_GFX_Surface_t *srcSurf, M
         stPalette.aunPalette[3].RGB.u8G = 0;
         stPalette.aunPalette[3].RGB.u8B = 0;
 
+    #ifdef CHIP_i2m
+        MI_GFX_SetPalette(E_MI_GFX_FMT_I8, &stPalette);
+    #else
         MI_GFX_SetPalette(GfxDevId, E_MI_GFX_FMT_I8, &stPalette);
+    #endif
         return 0;
     }
 
@@ -81,43 +85,75 @@ int  __create_src_surface_ARGB(MI_GFX_DEV GfxDevId, MI_GFX_Surface_t *srcSurf, M
     srcRect->u32Width = srcSurf->u32Width / 6;
     srcRect->u32Height = srcSurf->u32Height / 3;
     color = 0XFFFF0000;
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(srcSurf, srcRect, color, &fence);
+    MI_GFX_WaitAllDone(FALSE, fence);
+#else
     MI_GFX_QuickFill(GfxDevId, srcSurf, srcRect, color, &fence);
     MI_GFX_WaitAllDone(GfxDevId, FALSE, fence);
+#endif
 
     srcRect->s32Xpos = srcSurf->u32Width / 6;
     srcRect->s32Ypos = srcSurf->u32Height / 3;
 
     color = 0X80FF0000;
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(srcSurf, srcRect, color, &fence);
+    MI_GFX_WaitAllDone(FALSE, fence);
+#else
     MI_GFX_QuickFill(GfxDevId, srcSurf, srcRect, color, &fence);
     MI_GFX_WaitAllDone(GfxDevId, FALSE, fence);
+#endif
 
     srcRect->s32Xpos = srcSurf->u32Width / 3;
     srcRect->s32Ypos = srcSurf->u32Height - srcSurf->u32Height / 3;
 
     color = 0X00800000;
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(srcSurf, srcRect, color, &fence);
+    MI_GFX_WaitAllDone(FALSE, fence);
+#else
     MI_GFX_QuickFill(GfxDevId, srcSurf, srcRect, color, &fence);
     MI_GFX_WaitAllDone(GfxDevId, FALSE, fence);
+#endif
 
     srcRect->s32Xpos = srcSurf->u32Width / 2;
     srcRect->s32Ypos = 0;
 
     color = 0X000000FF;
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(srcSurf, srcRect, color, &fence);
+    MI_GFX_WaitAllDone(FALSE, fence);
+#else
     MI_GFX_QuickFill(GfxDevId, srcSurf, srcRect, color, &fence);
     MI_GFX_WaitAllDone(GfxDevId, FALSE, fence);
+#endif
 
     srcRect->s32Xpos = srcSurf->u32Width / 2 + srcSurf->u32Width / 6;
     srcRect->s32Ypos = srcSurf->u32Height / 3;
 
     color = 0X800000FF;
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(srcSurf, srcRect, color, &fence);
+    MI_GFX_WaitAllDone(FALSE, fence);
+#else
     MI_GFX_QuickFill(GfxDevId, srcSurf, srcRect, color, &fence);
     MI_GFX_WaitAllDone(GfxDevId, FALSE, fence);
+#endif
+
 
     srcRect->s32Xpos = srcSurf->u32Width / 2 + srcSurf->u32Width / 3;
     srcRect->s32Ypos = srcSurf->u32Height - srcSurf->u32Height / 3;
 
     color = 0XFF000080;
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(srcSurf, srcRect, color, &fence);
+    MI_GFX_WaitAllDone(FALSE, fence);
+#else
     MI_GFX_QuickFill(GfxDevId, srcSurf, srcRect, color, &fence);
     MI_GFX_WaitAllDone(GfxDevId, FALSE, fence);
+#endif
+
     return 0;
 }
 
@@ -131,14 +167,23 @@ int __refill_dst_surface_ARGB(MI_GFX_DEV GfxDevId, MI_GFX_Surface_t *srcSurf, MI
     Rect->u32Width = srcSurf->u32Width ;
     Rect->u32Height = srcSurf->u32Height / 2;
     color = 0X80FFFFFF;
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(srcSurf, Rect, color, &fence);
+#else
     MI_GFX_QuickFill(GfxDevId, srcSurf, Rect, color, &fence);
+#endif
     Rect->s32Xpos = 0;
     Rect->s32Ypos = srcSurf->u32Height / 2;
     Rect->u32Width = srcSurf->u32Width;
     Rect->u32Height = srcSurf->u32Height / 2;
     color = 0XFFFFFFFF;
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(srcSurf, Rect, color, &fence);
+    MI_GFX_WaitAllDone(FALSE, fence);
+#else
     MI_GFX_QuickFill(GfxDevId, srcSurf, Rect, color, &fence);
     MI_GFX_WaitAllDone(GfxDevId, FALSE, fence);
+#endif
     return 0;
 
 }
@@ -163,14 +208,23 @@ int __create_dst_surface_ARGB(MI_GFX_DEV GfxDevId, MI_GFX_Surface_t *srcSurf, MI
     srcRect->u32Width = srcSurf->u32Width ;
     srcRect->u32Height = srcSurf->u32Height / 2;
     color = 0X80FFFFFF;
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(srcSurf, srcRect, color, &fence);
+#else
     MI_GFX_QuickFill(GfxDevId, srcSurf, srcRect, color, &fence);
+#endif
     srcRect->s32Xpos = 0;
     srcRect->s32Ypos = srcSurf->u32Height / 2;
     srcRect->u32Width = srcSurf->u32Width;
     srcRect->u32Height = srcSurf->u32Height / 2;
     color = 0XFFFFFFFF;
+#ifdef CHIP_i2m
+    MI_GFX_QuickFill(srcSurf, srcRect, color, &fence);
+    MI_GFX_WaitAllDone(FALSE, fence);
+#else
     MI_GFX_QuickFill(GfxDevId, srcSurf, srcRect, color, &fence);
     MI_GFX_WaitAllDone(GfxDevId, FALSE, fence);
+#endif
     return 0;
 }
 

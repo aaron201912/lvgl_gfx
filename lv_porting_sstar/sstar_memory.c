@@ -33,18 +33,25 @@ void sstar_flush_cache()
 void *sstar_pool_malloc(size_t size)
 {
     if (g_virAddr != NULL || g_phyAddr != 0) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         return NULL;
     }
     if (size == 0) {
         return NULL;
     }
-    if (MI_SUCCESS != MI_SYS_MMA_Alloc(0, NULL, size, &g_phyAddr)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+#ifdef CHIP_i2m
+    if (MI_SUCCESS != MI_SYS_MMA_Alloc(NULL, size, &g_phyAddr)) {
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         exit(-1);
     }
+#else
+    if (MI_SUCCESS != MI_SYS_MMA_Alloc(0, NULL, size, &g_phyAddr)) {
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
+        exit(-1);
+    }
+#endif
     if (MI_SUCCESS != MI_SYS_Mmap(g_phyAddr, size, (void**)&g_virAddr, TRUE)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         exit(-1);
     }
     g_size = size;
@@ -58,13 +65,20 @@ void sstar_pool_free()
         return;
     }
     if (MI_SUCCESS != MI_SYS_Munmap(g_virAddr, g_size)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         return ;
     }
+#ifdef CHIP_i2m
+    if (MI_SUCCESS != MI_SYS_MMA_Free(g_phyAddr)) {
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
+        return ;
+    }
+#else
     if (MI_SUCCESS != MI_SYS_MMA_Free(0, g_phyAddr)) {
-        printf("ERR %s -> [%d]", __FILE__, __LINE__);
+        printf("ERR %s -> [%d]\n", __FILE__, __LINE__);
         return ;
     }
+#endif
     g_virAddr = 0;
     g_phyAddr = 0;
     g_size = 0;
