@@ -16,7 +16,7 @@ LVGL_DIR_NAME ?= lvgl
 #-Wno-unused-value -Wno-unused-parameter 
 OPTIMIZATION ?= -O3 -mfpu=neon #-g -fno-omit-frame-pointer 
 
-ALKAID_PROJ := /users/sz.chen/workspace/SDK_Release/TAKOYAKI_DLS00V050/project
+ALKAID_PROJ := ../project
 
 include $(ALKAID_PROJ)/configs/current.configs
 

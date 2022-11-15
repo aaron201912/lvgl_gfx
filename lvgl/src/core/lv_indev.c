@@ -329,6 +329,23 @@ static void indev_pointer_proc(lv_indev_t * i, lv_indev_data_t * data)
     i->proc.types.pointer.last_raw_point.x = data->point.x;
     i->proc.types.pointer.last_raw_point.y = data->point.y;
 
+#if SSTAR_GFX_ROTATE
+    if(SSTAR_GFX_ROTATE_ANGLE == 1) {//90
+        lv_coord_t tmp = data->point.x;
+        data->point.x = data->point.y;
+        data->point.y = disp->driver->ver_res - tmp - 1;
+    }
+    if(SSTAR_GFX_ROTATE_ANGLE == 2) {//180
+        data->point.x = disp->driver->hor_res - data->point.x - 1;
+        data->point.y = disp->driver->ver_res - data->point.y - 1;
+    }
+    if(SSTAR_GFX_ROTATE_ANGLE == 3) {//270
+        lv_coord_t tmp = data->point.y;
+        data->point.y = data->point.x;
+        data->point.x = disp->driver->hor_res - tmp - 1;
+    }
+    //printf("get x=%d,y=%d\n",data->point.x,data->point.y);
+#else
     if(disp->driver->rotated == LV_DISP_ROT_180 || disp->driver->rotated == LV_DISP_ROT_270) {
         data->point.x = disp->driver->hor_res - data->point.x - 1;
         data->point.y = disp->driver->ver_res - data->point.y - 1;
@@ -338,7 +355,7 @@ static void indev_pointer_proc(lv_indev_t * i, lv_indev_data_t * data)
         data->point.y = data->point.x;
         data->point.x = disp->driver->ver_res - tmp - 1;
     }
-
+#endif
     /*Simple sanity check*/
     if(data->point.x < 0) {
         LV_LOG_WARN("X is %d which is smaller than zero", data->point.x);
